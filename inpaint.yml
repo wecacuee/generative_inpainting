@@ -49,6 +49,10 @@ data_flist:
     'data/imagenet/train_shuffled.flist',
     'data/imagenet/validation_static_view.flist',
   ]
+  occupancygrid: [
+      'data/occupancygrid/train_shuffled.flist',
+      'data/occupancygrid/validation_static_view.flist'
+  ]
 
 static_view_size: 30
 img_shapes: [256, 256, 3]
@@ -68,3 +72,6 @@ l1_loss_alpha: 1.
 # to tune
 guided: False
 edge_threshold: 0.6
+
+mask: True
+mask_threshold: 0.5

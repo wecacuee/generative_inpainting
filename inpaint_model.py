@@ -92,6 +92,7 @@ class InpaintCAModel(Model):
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv5')
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv6',
                                 activation=tf.nn.relu)
+            #x, offset_flow = contextual_attention(x, x, None, 3, 1, rate=2)
             x, offset_flow = contextual_attention(x, x, mask_s, 3, 1, rate=2)
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv9')
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv10')
@@ -190,7 +191,8 @@ class InpaintCAModel(Model):
         # gan
         batch_pos_neg = tf.concat([batch_pos, batch_complete], axis=0)
         if FLAGS.gan_with_mask:
-            batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [FLAGS.batch_size*2, 1, 1, 1])], axis=3)
+            #batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [FLAGS.batch_size*2, 1, 1, 1])], axis=3)
+            batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [2, 1, 1, 1])], axis=3)
         if FLAGS.guided:
             # conditional GANs
             batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(edge, [2, 1, 1, 1])], axis=3)

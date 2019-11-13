@@ -1,0 +1,4 @@
+apt-get install -y \
+ros-melodic-rosbag \
+ros-melodic-tf2-ros \
+ros-melodic-rospy

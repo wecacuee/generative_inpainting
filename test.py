@@ -26,7 +26,11 @@ if __name__ == "__main__":
 
     model = InpaintCAModel()
     image = cv2.imread(args.image)
+    if image is None:
+        raise ValueError('File not found: {}'.format(args.image))
     mask = cv2.imread(args.mask)
+    if mask is None:
+        raise ValueError('File not found: {}'.format(args.mask))
     # mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
 
     assert image.shape == mask.shape

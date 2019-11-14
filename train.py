@@ -2,13 +2,14 @@ import os
 import glob
 
 import tensorflow as tf
+
 import neuralgym as ng
 
 from inpaint_model import InpaintCAModel
 
 
 def multigpu_graph_def(model, FLAGS, data, gpu_id=0, loss_type='g'):
-    with tf.device('/cpu:0'):
+    with tf.device('/gpu:0'):
         images = data.data_pipeline(FLAGS.batch_size)
     if gpu_id == 0 and loss_type == 'g':
         _, _, losses = model.build_graph_with_losses(
@@ -33,6 +34,10 @@ if __name__ == "__main__":
     if FLAGS.guided:
         fnames = [(fname, fname[:-4] + '_edge.jpg') for fname in fnames]
         img_shapes = [img_shapes, img_shapes]
+    if FLAGS.mask:
+        fnames = [(fname, fname.replace('_estimated', '_mask')) for fname in fnames]
+        img_shapes = [img_shapes, img_shapes]
+
     data = ng.data.DataFromFNames(
         fnames, img_shapes, random_crop=FLAGS.random_crop,
         nthreads=FLAGS.num_cpus_per_job)
@@ -74,6 +79,8 @@ if __name__ == "__main__":
         graph_def=multigpu_graph_def,
         graph_def_kwargs={
             'model': model, 'FLAGS': FLAGS, 'data': data, 'loss_type': 'd'},
+        log_progress=True,
+        log_dir=FLAGS.log_dir,
     )
     # train generator with primary trainer
     # trainer = ng.train.Trainer(
@@ -89,6 +96,8 @@ if __name__ == "__main__":
             'model': model, 'FLAGS': FLAGS, 'data': data, 'loss_type': 'g'},
         spe=FLAGS.train_spe,
         log_dir=FLAGS.log_dir,
+        log_progress=False,
+        pstep=10,
     )
     # add all callbacks
     trainer.add_callbacks([

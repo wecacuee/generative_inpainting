@@ -305,7 +305,7 @@ def contextual_attention(f, b, mask=None, ksize=3, stride=1, rate=1,
         mask = tf.zeros([1, bs[1], bs[2], 1])
     m = tf.extract_image_patches(
         mask, [1,ksize,ksize,1], [1,stride,stride,1], [1,1,1,1], padding='SAME')
-    m = tf.reshape(m, [1, -1, ksize, ksize, 1])
+    m = tf.reshape(m, [m.shape[0], -1, ksize, ksize, 1])
     m = tf.transpose(m, [0, 2, 3, 4, 1])  # transpose to b*k*k*c*hw
     m = m[0]
     mm = tf.cast(tf.equal(tf.reduce_mean(m, axis=[0,1,2], keep_dims=True), 0.), tf.float32)

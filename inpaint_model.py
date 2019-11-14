@@ -92,6 +92,7 @@ class InpaintCAModel(Model):
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv5')
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv6',
                                 activation=tf.nn.relu)
+            #x, offset_flow = contextual_attention(x, x, None, 3, 1, rate=2)
             x, offset_flow = contextual_attention(x, x, mask_s, 3, 1, rate=2)
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv9')
             x = gen_conv(x, 4*cnum, 3, 1, name='pmconv10')
@@ -135,19 +136,25 @@ class InpaintCAModel(Model):
             batch_data, edge = batch_data
             edge = edge[:, :, :, 0:1] / 255.
             edge = tf.cast(edge > FLAGS.edge_threshold, tf.float32)
-        batch_pos = batch_data / 127.5 - 1.
-        # generate mask, 1 represents masked point
-        bbox = random_bbox(FLAGS)
-        regular_mask = bbox2mask(FLAGS, bbox, name='mask_c')
-        irregular_mask = brush_stroke_mask(FLAGS, name='mask_c')
-        mask = tf.cast(
-            tf.logical_or(
-                tf.cast(irregular_mask, tf.bool),
-                tf.cast(regular_mask, tf.bool),
-            ),
-            tf.float32
-        )
 
+        if FLAGS.mask:
+            batch_data, mask = batch_data
+            mask = mask[:, :, :, 0:1] / 255.
+            mask = tf.cast(mask > FLAGS.mask_threshold, tf.float32)
+        else:
+            # generate mask, 1 represents masked point
+            bbox = random_bbox(FLAGS)
+            regular_mask = bbox2mask(FLAGS, bbox, name='mask_c')
+            irregular_mask = brush_stroke_mask(FLAGS, name='mask_c')
+            mask = tf.cast(
+                tf.logical_or(
+                    tf.cast(irregular_mask, tf.bool),
+                    tf.cast(regular_mask, tf.bool),
+                ),
+                tf.float32
+            )
+
+        batch_pos = batch_data / 127.5 - 1.
         batch_incomplete = batch_pos*(1.-mask)
         if FLAGS.guided:
             edge = edge * mask
@@ -184,7 +191,8 @@ class InpaintCAModel(Model):
         # gan
         batch_pos_neg = tf.concat([batch_pos, batch_complete], axis=0)
         if FLAGS.gan_with_mask:
-            batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [FLAGS.batch_size*2, 1, 1, 1])], axis=3)
+            #batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [FLAGS.batch_size*2, 1, 1, 1])], axis=3)
+            batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(mask, [2, 1, 1, 1])], axis=3)
         if FLAGS.guided:
             # conditional GANs
             batch_pos_neg = tf.concat([batch_pos_neg, tf.tile(edge, [2, 1, 1, 1])], axis=3)

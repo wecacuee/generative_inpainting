@@ -49,6 +49,8 @@ def shift_image_to_robot_as_center(image, R, t, cropsize=500):
 def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
          trueyaml='mapfinal_01.yaml',
          truemap='mapfinal_01.pgm',
+         erode_frac_min=0.01,
+         erode_frac_max=0.04,
          diff_map_lag=1,
          min_diff_mask=0.02,
          out_shape=[256, 256]):
@@ -136,7 +138,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
                 queue.append(mask)
                 continue
             else:
-                kernel = np.ones((int(0.01 * Dx),int(0.01 * Dy)),np.uint8)
+                erode_frac = erode_frac_min + np.random.rand() * (erode_frac_max - erode_frac_min)
+                kernel = np.ones((int(erode_frac * Dx),int(erode_frac * Dy)),np.uint8)
                 expand_mask = cv2.erode(mask.astype(np.uint8), kernel)
                 diff_mask = old_mask & (~expand_mask)
         else:

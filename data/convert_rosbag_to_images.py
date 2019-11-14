@@ -48,7 +48,6 @@ def shift_image_to_robot_as_center(image, R, t, cropsize=500):
 
 def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
          trueyaml='mapfinal_01.yaml',
-         generatedyaml='mapsim_01.yaml',
          truemap='mapfinal_01.pgm',
          diff_map_lag=1,
          min_diff_mask=0.02,
@@ -108,8 +107,7 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
             continue
 
         npmsg = np.array(msg.data)
-        sim_params = yaml.safe_load(open(generatedyaml))
-        Dx, Dy = sim_params['dims']
+        Dx, Dy, resolution = msg.info.width, msg.info.height, msg.info.resolution
         occgrid = npmsg.reshape(Dx, Dy)
         #xindices, yindices = np.mgrid[0:Dy, 0:Dy]
         #xyindx = np.concatenate((xindices[..., np.newaxis], yindices[..., np.newaxis]), axis=-1)
@@ -129,9 +127,15 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
             # because that is already known. We can only be more ambitious and
             # ask inpainting model to predict expanded masks.
             old_mask = queue[0].astype(np.bool) # [0, 1] # bool
-            kernel = np.ones((int(0.01 * Dx),int(0.01 * Dy)),np.uint8)
-            expand_mask = cv2.erode(mask.astype(np.uint8), kernel)
-            diff_mask = old_mask & (~expand_mask)
+            if old_mask.shape != occgrid.shape:
+                LOG.warning("the occupancygrid shape has changed {} <=> {}".format(
+                    old_mask.shape, occgrid.shape))
+                queue.append(mask)
+                continue
+            else:
+                kernel = np.ones((int(0.01 * Dx),int(0.01 * Dy)),np.uint8)
+                expand_mask = cv2.erode(mask.astype(np.uint8), kernel)
+                diff_mask = old_mask & (~expand_mask)
         else:
             diff_mask = ~mask
         if np.sum(diff_mask) < min_diff_mask * (Dx*Dy):
@@ -150,8 +154,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         sim_occgrid_cropped = shift_image_to_robot_as_center(
             Image.fromarray(sim_occgrid[::-1, :]),
             R = base_R_realmap,
-            t = (int(-base_t_real[0] / sim_params['resolution']),
-                 int(base_t_real[1] / sim_params['resolution'])))
+            t = (int(-base_t_real[0] / resolution),
+                 int(base_t_real[1] / resolution)))
 
         sim_occgrid_cropped_bgr = cv2.cvtColor(
             np.asarray(sim_occgrid_cropped), cv2.COLOR_GRAY2BGR)
@@ -173,8 +177,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         mask_cropped = shift_image_to_robot_as_center(
             Image.fromarray(diff_mask[::-1, :]),
             R = base_R_realmap,
-            t = (int(-base_t_real[0] / sim_params['resolution']),
-                 int(base_t_real[1] / sim_params['resolution'])))
+            t = (int(-base_t_real[0] / resolution),
+                 int(base_t_real[1] / resolution)))
         mask_cropped = cv2.cvtColor(np.asarray(mask_cropped),
                                     cv2.COLOR_GRAY2BGR)
         mask_cropped = cv2.resize(mask_cropped, tuple(out_shape))
@@ -184,10 +188,10 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         true_occgrid_img = Image.open(truemap)
         true_occgrid = np.array(true_occgrid_img)
         true_occgrid_img_scaled = true_occgrid_img.resize((
-            int(true_occgrid.shape[1]*true_params['resolution']/sim_params['resolution']),
-            int(true_occgrid.shape[0]*true_params['resolution']/sim_params['resolution'])))
+            int(true_occgrid.shape[1]*true_params['resolution']/resolution),
+            int(true_occgrid.shape[0]*true_params['resolution']/resolution)))
         true_occgrid_img_sim_sized = np.zeros_like(sim_occgrid)
-        true_origin_in_sim_pixels = np.array(true_params['origin'])/sim_params['resolution']
+        true_origin_in_sim_pixels = np.array(true_params['origin'])/resolution
         true_map_image = Image.fromarray(true_occgrid_img_sim_sized)
         true_map_image.paste(
             true_occgrid_img_scaled,
@@ -199,8 +203,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         true_map_image_cropped = shift_image_to_robot_as_center(
             true_map_image,
             R = base_R_realmap,
-            t = (int(-base_t_real[0] / sim_params['resolution']),
-                 int(base_t_real[1] / sim_params['resolution'])))
+            t = (int(-base_t_real[0] / resolution),
+                 int(base_t_real[1] / resolution)))
 
         #true_map_image = np.asarray(true_map_image) * 0.8 + np.asarray(sim_occgrid) * 0.2
         true_map_image_bgr = cv2.cvtColor(np.asarray(true_map_image_cropped), cv2.COLOR_GRAY2BGR)

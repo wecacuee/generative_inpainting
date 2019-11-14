@@ -51,7 +51,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
          generatedyaml='mapsim_01.yaml',
          truemap='mapfinal_01.pgm',
          diff_map_lag=1,
-         min_diff_mask=0.02):
+         min_diff_mask=0.02,
+         out_shape=[256, 256]):
     if use_tf:
         bag = rosbag.Bag(bagfile)
         buffer = tf2_ros.BufferCore(rospy.Duration(10000))
@@ -164,6 +165,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         LOG.info("Writing file {}".format(estimated_outfile))
+        sim_occgrid_cropped_bgr = cv2.resize(sim_occgrid_cropped_bgr,
+                                             tuple(out_shape))
         cv2.imwrite(estimated_outfile, sim_occgrid_cropped_bgr)
 
         diff_mask = (diff_mask * 255).astype(np.uint8)
@@ -174,6 +177,7 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
                  int(base_t_real[1] / sim_params['resolution'])))
         mask_cropped = cv2.cvtColor(np.asarray(mask_cropped),
                                     cv2.COLOR_GRAY2BGR)
+        mask_cropped = cv2.resize(mask_cropped, tuple(out_shape))
         cv2.imwrite(out.format(i=i, tag='mask'), mask_cropped)
 
         true_params = yaml.safe_load(open(trueyaml))
@@ -205,6 +209,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
         #                (-10 + imsize[1]//2, imsize[0]//2),
         #                (10+imsize[1]//2, imsize[0]//2),
         #                (255, 0, 0), thickness=3)
+
+        true_map_image_bgr = cv2.resize(true_map_image_bgr, tuple(out_shape))
         cv2.imwrite(out.format(i=i, tag='true'), true_map_image_bgr)
         #sim_occgrid[
         #    truncate(sim_xyidx[..., 1].astype(np.int32), 0, Dy-1),

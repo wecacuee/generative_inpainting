@@ -9,20 +9,12 @@ spec:
       claimName:  rook-cephfs-erl-ucsd-vdhiman
   containers:
   - name: tensorflow
-    image: tensorflow/tensorflow:1.14.0-gpu-py3-jupyter
-    #image: gitlab-registry.nautilus.optiputer.net/prp/jupyterlab:latest
+    #image: tensorflow/tensorflow:1.14.0-gpu-py3-jupyter
+    image: gitlab-registry.nautilus.optiputer.net/prp/jupyterlab:latest
     command: ["sleep", "infinity"]
     volumeMounts:
     - name: rook-cephfs-erl-ucsd-vdhiman
       mountPath: /home/vdhiman
     resources:
       limits:
-        memory: 8Gi
-        cpu: "2"
         nvidia.com/gpu: "1"
-      requests:
-        memory: 8Gi
-        cpu: "2"
-        nvidia.com/gpu: "1"
-  restartPolicy: Never
-  dnsPolicy: Default

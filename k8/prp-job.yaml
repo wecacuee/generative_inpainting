@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Job
+metadata:
+  name: generative_inpainting_train
+spec:
+  volumes:
+  - name: rook-cephfs-erl-ucsd-vdhiman
+    persistentVolumeClaim:
+      claimName:  rook-cephfs-erl-ucsd-vdhiman
+  containers:
+  - name: tensorflow
+    #image: tensorflow/tensorflow:1.14.0-gpu-jupyter
+    image: gitlab-registry.nautilus.optiputer.net/vdhiman/generative_inpainting:latest
+    command:
+      - "bash"
+      - "-c"
+      - "export CODE_DIR=/home/vdhiman/wrk/generative_inpainting DATA_ROOT=/home/vdhiman/wrk/generative_inpainting && cd $CODE_DIR && git pull && bash setup_once.bash && python3 train.py"
+    volumeMounts:
+    - name: rook-cephfs-erl-ucsd-vdhiman
+      mountPath: /home/vdhiman
+    resources:
+      limits:
+        memory: 8Gi
+        cpu: "8"
+        nvidia.com/gpu: "2"
+      requests:
+        memory: 8Gi
+        cpu: "8"
+        nvidia.com/gpu: "2"
+  restartPolicy: Never
+  dnsPolicy: Default

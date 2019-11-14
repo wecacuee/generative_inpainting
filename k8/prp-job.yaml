@@ -18,7 +18,7 @@ spec:
         command:
           - "bash"
           - "-c"
-          - "export CODE_DIR=/home/vdhiman/wrk/generative_inpainting DATA_ROOT=/home/vdhiman/wrk/generative_inpainting && cd $CODE_DIR && pip install -r requirements.txt && python train.py"
+          - "export CODE_DIR=/home/vdhiman/wrk/generative_inpainting DATA_ROOT=/home/vdhiman/wrk/generative_inpainting && cd $CODE_DIR && git pull && pip install -r requirements.txt && python train.py"
         volumeMounts:
         - name: rook-cephfs-erl-ucsd-vdhiman
           mountPath: /home/vdhiman

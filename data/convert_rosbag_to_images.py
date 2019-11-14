@@ -62,6 +62,7 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
     bag = rosbag.Bag(bagfile)
     i = 0
     queue = deque(maxlen=diff_map_lag)
+    last_sim_odom = None
     for topic, msg, t in bag.read_messages(
             topics=['/robot0/gmapping_map', '/robot0/sim_odom', '/robot0/odom']):
         if topic == '/robot0/sim_odom':
@@ -69,6 +70,8 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
             continue
         elif topic == '/robot0/odom':
             last_odom, last_odom_time = msg, t
+            continue
+        elif last_sim_odom is None:
             continue
         else:
             i = i + 1

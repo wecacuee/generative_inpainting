@@ -154,7 +154,7 @@ def main(bagfile, out='maps/{i:04d}_{tag}.png', step=1, use_tf=False,
             continue
 
         occgrid[mask] = occgrid.max() / 2
-        occgrid = occgrid * 255 / 100
+        occgrid = occgrid * 255 / occgrid.max()
         occgrid = occgrid.astype(np.uint8)
         sim_occgrid = occgrid.copy()
         sim_occgrid_cropped = shift_image_to_robot_as_center(

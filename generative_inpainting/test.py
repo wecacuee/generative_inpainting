@@ -1,3 +1,6 @@
+import os.path as osp
+import subprocess
+
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -5,9 +8,30 @@ import neuralgym as ng
 
 from inpaint_model import InpaintCAModel
 
+
+def abspath(relpath, relto=osp.dirname(__file__) or "."):
+    return osp.join(relto, relpath)
+
+
+def download_radish(
+        downloadscriptpath=abspath(
+            "model_logs/download_radish_model.bash"),
+        generated_dir=abspath("model_logs/radish")):
+    if not osp.exists(generated_dir):
+        subprocess.run(["bash", "-x", downloadscriptpath])
+    return generated_dir
+
+
 class FillInpainting:
-    def __init__(self, checkpoint_dir, config='inpaint.yml'):
+    """
+    """
+    def __init__(self,
+                 checkpoint_dir=None,
+                 get_checkpoint_dir=download_radish,
+                 config=abspath('inpaint.yml')):
         self.FLAGS = ng.Config(config)
+        if checkpoint_dir is None:
+            checkpoint_dir = get_checkpoint_dir()
         self.checkpoint_dir = checkpoint_dir
 
     def predict(self, image, mask):

@@ -1,0 +1,32 @@
+version: "2.4"
+services:
+  train:
+    build:
+      context: .
+    image: generative_inpainting
+    environment:
+      - HOME=$HOME
+      - DISPLAY
+      - TERM
+    working_dir: $PWD
+    command: ["python3", "train.py"]
+    volumes:
+      - $HOME:$HOME
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+
+  test:
+    build:
+      context: .
+    image: generative_inpainting
+    environment:
+      - HOME=$HOME
+      - DISPLAY
+      - TERM
+    working_dir: $PWD
+    command: ["python3", "test.py"]
+    volumes:
+      - $HOME:$HOME
+      - /tmp/.X11-unix:/tmp/.X11-unix
+
+

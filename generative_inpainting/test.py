@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 import neuralgym as ng
 
-from inpaint_model import InpaintCAModel
+from .inpaint_model import InpaintCAModel
 
 
 def abspath(relpath, relto=osp.dirname(__file__) or "."):

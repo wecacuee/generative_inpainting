@@ -1,4 +1,4 @@
 tensorboard==1.14.0
 tensorflow-gpu==1.14.0
 neuralgym @ git+https://github.com/JiahuiYu/neuralgym
-opencv-python
+opencv-python-headless

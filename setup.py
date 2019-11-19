@@ -14,5 +14,9 @@ setup(name='generative_inpainting',
       ),
       python_requires='>=3.5',
       packages=find_packages(),
+
+      package_data={
+          '': ['*.yml'],
+      },
       install_requires=open('requirements.txt').readlines()
 )

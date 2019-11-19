@@ -15,8 +15,8 @@ def abspath(relpath, relto=osp.dirname(__file__) or "."):
 
 
 def download_radish(
-        generated_dir=osp.expanduser("~/.generative_inpainting/radish")):
-    if not osp.exists(generated_dir):
+        generated_dir=osp.expanduser("~/.generative_inpainting/")):
+    if not osp.exists(osp.join(generated_dir, "radish")):
         download(generated_dir)
     return generated_dir
 

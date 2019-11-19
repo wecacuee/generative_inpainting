@@ -16,9 +16,10 @@ def abspath(relpath, relto=osp.dirname(__file__) or "."):
 
 def download_radish(
         generated_dir=osp.expanduser("~/.generative_inpainting/")):
-    if not osp.exists(osp.join(generated_dir, "radish")):
+    checkpoint_dir = osp.join(generated_dir, "radish")
+    if not osp.exists(checkpoint_dir):
         download(generated_dir)
-    return generated_dir
+    return checkpoint_dir
 
 
 class FillInpainting:

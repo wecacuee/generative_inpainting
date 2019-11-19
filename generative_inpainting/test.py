@@ -15,11 +15,9 @@ def abspath(relpath, relto=osp.dirname(__file__) or "."):
 
 
 def download_radish(
-        downloadscriptpath=abspath(
-            "model_logs/download_radish_model.bash"),
-        generated_dir=abspath("model_logs/radish")):
+        generated_dir=osp.expanduser("~/.generated_inpainting/radish")):
     if not osp.exists(generated_dir):
-        download()
+        download(generated_dir)
     return generated_dir
 
 

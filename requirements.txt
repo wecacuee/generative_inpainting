@@ -4,3 +4,4 @@ neuralgym @ git+https://github.com/JiahuiYu/neuralgym
 opencv-python-headless
 pyyaml
 numpy
+pillow

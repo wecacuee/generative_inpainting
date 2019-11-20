@@ -1,3 +1,4 @@
 rospkg
 catkin-tools
 rosdistro
+pyquaternions

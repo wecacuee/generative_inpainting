@@ -6,28 +6,30 @@ services:
       context: .
       dockerfile: Dockerfile_ros_nvidia
 
-  core:
-    image: ros-melodic-bionic-nvidia
-    command: ["roscore"]
-    network_mode: host
+    #core:
+    # imcoreage: ros-melodic-bionic-nvidia
+    # cocoremmand: ["roscore"]
+    # necoretwork_mode: host
     
   predictor:
     build:
       context: .
     image: generative_inpainting_ros
     environment:
+      - HOME=$HOME
       - DISPLAY
       - TERM
       - ROS_NAMESPACE=robot0
     entrypoint: ["/ros_entrypoint.sh"]
-    command: ["bash", "-c", "pip3 install --upgrade numpy pillow && python3 ros/map_predictor.py"]
+    working_dir: $PWD
+    command: ["bash", "-c", "pip3 install -e ../ && python3 map_predictor.py"]
     network_mode: host
     volumes:
       - $HOME:$HOME
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
 
-    depends_on: [core]
+    #depends_on: [core]
 
     #rosbag:
     #roimage: generative_inpainting_ros

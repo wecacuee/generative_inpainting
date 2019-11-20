@@ -59,7 +59,7 @@ class FillInpainting:
                 self.checkpoint_dir, from_name)
             assign_ops.append(tf.assign(var, var_value))
         sess.run(assign_ops)
-        self.model_loaded = True
+        self.model_loaded = image_shape
         print('Model loaded.')
 
 
@@ -79,8 +79,9 @@ class FillInpainting:
         image = image[:h//grid*grid, :w//grid*grid, :]
         mask = mask[:h//grid*grid, :w//grid*grid, :]
         print('Grid Shape of image: {}'.format(image.shape), file=sys.stderr, flush=True)
-        if not self.model_loaded:
-            self.load_model(image.shape[:2])
+        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+            if not self.model_loaded or self.model_loaded != image.shape[:2]:
+                self.load_model(image.shape[:2])
 
         image = np.expand_dims(image, 0)
         mask = np.expand_dims(mask, 0)
@@ -88,7 +89,9 @@ class FillInpainting:
 
         # load pretrained model
         result = self.session.run(self.output, feed_dict={self.input_image_ph: input_image})
-        return cv2.resize(result[0], old_size)
+        img = cv2.resize(result[0], (old_size[1], old_size[0]))
+        assert img.shape[:2] == old_size
+        return img
 
 GLOBAL_FILL_INPAINTING = FillInpainting()
 

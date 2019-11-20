@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.14.0-gpu-py3-jupyter
+FROM ros-melodic-bionic-nvidia
 
 ENV HOME /home/root
 ENV DATA_ROOT $HOME/dat/generative_inpainting
@@ -8,5 +8,4 @@ RUN mkdir -p $(dirname $CODE_DIR) \
     && git clone https://github.com/wecacuee/generative_inpainting.git $CODE_DIR
 RUN cd $CODE_DIR && bash setup_once.bash
 WORKDIR $CODE_DIR
-CMD ["python", "train.py"]
-
+CMD ["python3", "ros/map_predictor.py"]

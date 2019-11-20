@@ -1,0 +1,38 @@
+version: "2.4"
+services:
+  core:
+    image: generative_inpainting_ros
+    command: ["roscore"]
+    network_mode: host
+    
+  pomdp:
+    build:
+      context: .
+    image: generative_inpainting_ros
+    environment:
+      - HOME=$HOME
+      - DISPLAY
+      - TERM
+      - ROS_NAMESPACE=robot0
+    entrypoint: ["/ros_entrypoint.sh"]
+    working_dir: $PWD
+    command: ["bash", "-c", "pip3 install -e ../ && python map_predictory.py"]
+    network_mode: host
+    volumes:
+      - $HOME:$HOME
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+
+    #depends_on: [core]
+
+  rosbag:
+    image: generative_inpainting_ros
+    command: ["rosbag", "play", "/home/vdhiman/aux/generative_inpainting/data/radish/maps_pgm/department_diiga__2019-11-13-01-05-46.bag"]
+    network_mode: host
+    volumes:
+      - $HOME:$HOME
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    depends_on: [core]
+
+

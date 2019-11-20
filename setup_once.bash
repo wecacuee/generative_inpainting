@@ -8,7 +8,7 @@ if [ -w "/var/lib/dpkg/lock-frontend" ]; then
 else
     sudo setup_once_root.bash
 fi
+pip3 install --upgrade pip
 pip install -e $CODE_DIR
 cd $CODE_DIR/data && ln -s $DATA_ROOT/data/radish
 mkdir -p $DATA_ROOT/logs && cd $CODE_DIR && ln -s $DATA_ROOT/logs
-{ cd $CODE_DIR/model_logs && bash download_radish_model.bash; cd - ; }

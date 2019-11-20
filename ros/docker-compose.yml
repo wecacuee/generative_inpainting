@@ -1,9 +1,15 @@
 version: "2.4"
 services:
+  ros_nvidia:
+    build:
+      context: .
+      dockerfile: Dockerfile_ros_nvidia
+
   core:
-    image: generative_inpainting_ros
+    image: ros_nvidia
     command: ["roscore"]
     network_mode: host
+    depends_on: [ros_nvidia]
     
   predictor:
     build:
@@ -23,7 +29,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
 
-    #depends_on: [core]
+    depends_on: [core]
 
   rosbag:
     image: generative_inpainting_ros

@@ -8,8 +8,9 @@ from nav_msgs.msg import OccupancyGrid
 from generative_inpainting.test import GLOBAL_FILL_INPAINTING
 
 
-def predict_map(msg, unknown_prob_range=(0.45, 0.55)):
+def predict_map(msg, erode_frac=0.04, unknown_prob_range=(0.45, 0.55)):
     npmsg = np.array(msg.data)
+    orig_range = npmsg[npmsg >= 0].min(), npmsg.max()
     Dx, Dy, resolution = msg.info.width, msg.info.height, msg.info.resolution
     occgrid = npmsg.reshape(Dx, Dy)
     unknown = occgrid == -1
@@ -19,8 +20,8 @@ def predict_map(msg, unknown_prob_range=(0.45, 0.55)):
     occgrid = cv2.cvtColor(occgrid, cv2.COLOR_GRAY2BGR)
 
     kernel = np.ones((int(erode_frac * Dx),int(erode_frac * Dy)),np.uint8)
-    expand_mask = cv2.erode(mask.astype(np.uint8), kernel)
-    diff_mask = mask & (~expand_mask)
+    expand_mask = cv2.erode(unknown.astype(np.uint8), kernel)
+    diff_mask = unknown & (~expand_mask)
     diff_mask = (diff_mask * 255).astype(np.uint8)
     diff_mask = cv2.cvtColor(diff_mask, cv2.COLOR_GRAY2BGR)
     predicted_img = GLOBAL_FILL_INPAINTING.predict(occgrid, diff_mask)
@@ -30,27 +31,27 @@ def predict_map(msg, unknown_prob_range=(0.45, 0.55)):
     unknown_predicted = (unknown_prob_range[0] < predicted) & (
         predicted < unknown_prob_range[1])
     unknown_predicted &= unknown
-    return predicted, unknown_predicted
+    #return predicted, unknown_predicted
+
+    predicted = orig_range[0] + predicted * ( orig_range[1] - orig_range[0] ) / (predicted.max() - predicted.min())
+    predicted = predicted.astype(np.int8)
+    predicted[unknown_predicted] = -1
+
+    pred_occgrid = OccupancyGrid()
+    pred_occgrid.header.stamp = rospy.Time.now()
+    pred_occgrid.info = msg.info
+    pred_occgrid.data = predicted
+    return pred_occgrid
 
 
-def main(erode_frac=0.04):
+def main():
     import sys
     rospy.init_node('map_predictor')
-    rospy.load_command_line_node_params(sys.argv)
     pub = rospy.Publisher('predicted_map', OccupancyGrid, queue_size=10)
 
     while not rospy.is_shutdown():
         msg = rospy.wait_for_message('point_cloud_cache/renderer/full_map', OccupancyGrid)
-        orig_range = msg.data[msg.data >= 0].min(), msg.data.max()
-        predicted, unknown_predicted = predict_map(msg)
-        predicted = orig_range[0] + predicted * ( orig_range[1] - orig_range[0] ) / (predicted.max() - predicted.min())
-        predicted = predicted.astype(np.int8)
-        predicted[unknown_predicted] = -1
-
-        pred_occgrid = OccupancyGrid()
-        pred_occgrid.header.stamp = rospy.Time.now()
-        pred_occgrid.info = msg.info
-        pred_occgrid.data = predicted
+        pred_occgrid = predict_map(msg)
         pub.publish(pred_occgrid)
 
 

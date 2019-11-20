@@ -5,7 +5,7 @@ services:
     command: ["roscore"]
     network_mode: host
     
-  pomdp:
+  predictor:
     build:
       context: .
     image: generative_inpainting_ros
@@ -16,7 +16,7 @@ services:
       - ROS_NAMESPACE=robot0
     entrypoint: ["/ros_entrypoint.sh"]
     working_dir: $PWD
-    command: ["bash", "-c", "pip3 install -e ../ && python map_predictory.py"]
+    command: ["bash", "-c", "pip3 install -e ../ && python3 map_predictor.py"]
     network_mode: host
     volumes:
       - $HOME:$HOME
@@ -27,7 +27,7 @@ services:
 
   rosbag:
     image: generative_inpainting_ros
-    command: ["rosbag", "play", "/home/vdhiman/aux/generative_inpainting/data/radish/maps_pgm/department_diiga__2019-11-13-01-05-46.bag"]
+    command: ["rosbag", "play", "/home/vdhiman/aux/generative_inpainting/data/radish/maps_pgm/department_diiga__2019-11-13-01-05-46.bag", "/robot0/gmapping_map:=/robot0/point_cloud_cache/renderer/full_map" ]
     network_mode: host
     volumes:
       - $HOME:$HOME

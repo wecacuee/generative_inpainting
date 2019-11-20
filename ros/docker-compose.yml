@@ -20,7 +20,7 @@ services:
       - TERM
       - ROS_NAMESPACE=robot0
     entrypoint: ["/ros_entrypoint.sh"]
-    command: ["bash", "-c", "python3 ros/map_predictor.py"]
+    command: ["bash", "-c", "pip3 install --upgrade numpy pillow && python3 ros/map_predictor.py"]
     network_mode: host
     volumes:
       - $HOME:$HOME

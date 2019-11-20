@@ -50,7 +50,7 @@ def main():
     pub = rospy.Publisher('predicted_map', OccupancyGrid, queue_size=10)
 
     while not rospy.is_shutdown():
-        msg = rospy.wait_for_message('point_cloud_cache/renderer/full_map', OccupancyGrid)
+        msg = rospy.wait_for_message('point_cloud_cache/renderers/full_map', OccupancyGrid)
         pred_occgrid = predict_map(msg)
         pub.publish(pred_occgrid)
 
